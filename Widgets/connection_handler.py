@@ -3,7 +3,8 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 
-from hue import LinkButtonNotPressedError
+from custom_errors import *
+
 
 
 class ConnectionHandler:
@@ -63,9 +64,12 @@ class ConnectionHandler:
             self.bridge.connect()
             self.set_color(Qt.green)
             self.update_status('Connected')
-        except LinkButtonNotPressedError:
+        except (LinkButtonNotPressedError, UnauthorizedUserError):
             self.set_color(Qt.red)
             self.update_status(error_message)
+        except GenericHueError as e:
+            self.set_color(Qt.red)
+            self.update_status(str(e))
 
 
 class ClickableLabel(QtWidgets.QLabel):

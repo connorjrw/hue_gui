@@ -47,7 +47,7 @@ class Window(QMainWindow):
 
         try:
             self.set_light(self.light) # Try ?!?
-        except UnauthorizedUserError:
+        except (UnauthorizedUserError, KeyError):
             pass
 
     def set_light(self, light):
@@ -72,7 +72,8 @@ class Window(QMainWindow):
         except GenericHueError as e:
             self.connection_handler.update_status(str(e))
             self.connection_handler.set_color(Qt.red)
-        except (TypeError, UnauthorizedUserError):
+        except (TypeError, UnauthorizedUserError, KeyError):
+            self.connection_handler.set_color(Qt.red)
             self.connection_handler.update_status('Not Connected')
 
 

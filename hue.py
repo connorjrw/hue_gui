@@ -13,6 +13,7 @@ import os
 from pathlib import Path
 import json
 
+
 from custom_errors import GenericHueError, LinkButtonNotPressedError, UnauthorizedUserError
 
 
@@ -57,7 +58,7 @@ class Bridge:
         api_string = self.ipaddress + 'api'
         resp = requests.post(api_string, json={'devicetype': 'philip'})
         if 'error' in resp.json()[0]:
-            return 'Error ' + resp.json()[0]['error']['description']
+            self.error_handler(resp.json()[0]['error'])
         else:
             return resp.json()[0]['success']['username']
 
@@ -66,23 +67,29 @@ class Bridge:
         Gets state of light
         """
         api_string = self.ipaddress + 'api/' + self.userid + '/lights/' + str(light)
-        resp = requests.get(api_string)
+        resp = ''
         try:
+            resp = requests.get(api_string)
             return resp.json()['state']
         except TypeError:
             json_error_details = resp.json()[0]
             if 'error' in resp.json()[0]:
                 self.error_handler(json_error_details)
+        except requests.exceptions.MissingSchema:
+            return {}
 
     def check_connection(self, ip_add, user_id):
         api_string = ip_add + 'api/' + user_id
-        resp = requests.get(api_string)
         status = True
-        if type(resp.json()) is list:
-            # HAS to be a better way to do this!!
-            if 'error' in resp.json()[0]:
-                status = False
-        return status
+        try:
+            resp = requests.get(api_string)
+            if type(resp.json()) is list:
+                if 'error' in resp.json()[0]:
+                    status = False
+        except requests.exceptions.MissingSchema:
+            status = False
+        finally:
+            return status
 
     def connected(self):
         return self.check_connection(self.ipaddress, self.userid)
@@ -90,31 +97,25 @@ class Bridge:
     def connect(self):
         # Needs to be tidied
         config_path = os.getenv('HOME') + '/hue/'
-        file = Path(config_path + '/config.txt')
-        connected = False
-        if file.is_file():
+        try:
             with open(config_path + 'config.txt') as json_file:
                 data = json.load(json_file)
                 if self.check_connection(data['ip_address'], data['user_id']):
                     self.ipaddress = data['ip_address']
                     self.userid = data['user_id']
-                    connected = True
-        if not connected:
+        except FileNotFoundError:
             if not Path.exists(Path(config_path)):
                 os.mkdir(config_path)
             self.ipaddress = self.get_ip_address()
             self.userid = self.create_user()
-            if 'Error' in self.userid:  # + any other errors
-                raise LinkButtonNotPressedError
-            else:
-                json_config = {
-                    "ip_address": self.ipaddress,
-                    "user_id": self.userid
+            json_config = {
+                "ip_address": self.ipaddress,
+                "user_id": self.userid
                 }
-                self.ipaddress = self.ipaddress
-                self.userid = self.userid
-                with open(config_path + 'config.txt', 'w') as outfile:
-                    json.dump(json_config, outfile)
+            self.ipaddress = self.ipaddress
+            self.userid = self.userid
+            with open(config_path + 'config.txt', 'w') as outfile:
+                json.dump(json_config, outfile)
 
     def error_handler(self, json_error_details):
         if json_error_details['type'] == 1:
