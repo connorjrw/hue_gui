@@ -6,12 +6,12 @@ from PyQt5.QtCore import *
 from custom_errors import *
 
 
-
 class ConnectionHandler:
 
     def __init__(self, parent, status_color=Qt.red, status_text='Disconnected'):
         self.parent = parent
         self.bridge = parent.bridge
+        self.light = parent.light
         self.label = QtWidgets.QLabel()
         canvas = QtGui.QPixmap(650, 450)
         self.label.setPixmap(canvas)
@@ -25,6 +25,10 @@ class ConnectionHandler:
         self.connection_label = ClickableLabel(self.label_onclick, status_text, self.parent)
         self.connection_label.adjustSize()
         self.connection_label.move(38, 422)
+
+    def update_message(self, message):
+        self.connection_label.setText(message)
+        self.connection_label.adjustSize()
 
     def set_color(self, status_color):
         """
@@ -58,18 +62,21 @@ class ConnectionHandler:
         Attempt connection to Bridge
 
         :param error_message: Text to display if connection unsuccesfull
-        :return:
+
         """
         try:
             self.bridge.connect()
             self.set_color(Qt.green)
             self.update_status('Connected')
+            self.parent.set_light(self.light)
         except (LinkButtonNotPressedError, UnauthorizedUserError):
             self.set_color(Qt.red)
             self.update_status(error_message)
+            self.parent.disabled()
         except GenericHueError as e:
             self.set_color(Qt.red)
             self.update_status(str(e))
+            self.parent.disabled()
 
 
 class ClickableLabel(QtWidgets.QLabel):

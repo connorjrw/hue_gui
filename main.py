@@ -1,4 +1,4 @@
-from Widgets.buttons import ColorBtn
+from Widgets.color_btns import ColorBtn
 from Widgets.connection_handler import ConnectionHandler
 from hue import *
 from Widgets.sliders import *
@@ -13,11 +13,8 @@ class Window(QMainWindow):
         self.setWindowTitle("Disco Phillip"), self.setGeometry(100, 100, 650, 350)
         self.color_btns = []
         self.bridge = bridge
-
-        self.connection_handler = ConnectionHandler(self)
-        self.connection_handler.connect_bridge('Disconnected. Click to connect')
         self.light = Light(self.bridge, 1)
-
+        self.connection_handler = ConnectionHandler(self)
 
         # Color Buttons
         self.color_btns = [
@@ -41,14 +38,12 @@ class Window(QMainWindow):
         # Stylesheet for sliders
         self.setStyleSheet(open('styles.css').read())
 
+        # Attempt Connection to bridge
+        self.connection_handler.connect_bridge('Disconnected. Click to connect')
+
         # Show gui
         self.update()
         self.show()
-
-        try:
-            self.set_light(self.light) # Try ?!?
-        except (UnauthorizedUserError, KeyError):
-            pass
 
     def set_light(self, light):
         """Setting color of lights in GUI based on HUE status"""
@@ -56,6 +51,10 @@ class Window(QMainWindow):
         if not self.light.get_status()['on']:
             for btn in self.color_btns:
                 btn.off()
+
+    def disabled(self):
+        for btn in self.color_btns:
+            btn.off()
 
     def on_off(self):
         """Turn light on/off"""
@@ -72,7 +71,7 @@ class Window(QMainWindow):
         except GenericHueError as e:
             self.connection_handler.update_status(str(e))
             self.connection_handler.set_color(Qt.red)
-        except (TypeError, UnauthorizedUserError, KeyError):
+        except (TypeError, KeyError, UnauthorizedUserError):
             self.connection_handler.set_color(Qt.red)
             self.connection_handler.update_status('Not Connected')
 

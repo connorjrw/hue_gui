@@ -23,9 +23,9 @@ class ColorBtn(QPushButton):
                 self.light.on()
             self.light.color(color)
         except UnauthorizedUserError:
-            self.connection_handler('Not Connected')
+            self.connection_handler.update_message('Not Connected')
         except GenericHueError as e:
-            self.connection_handler(str(e)) # Not Tested
+            self.connection_handler.update_message(str(e))
 
     def off(self):
         self.setStyleSheet('background-color : grey;')

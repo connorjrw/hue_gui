@@ -74,7 +74,8 @@ class Bridge:
         except TypeError:
             json_error_details = resp.json()[0]
             if 'error' in resp.json()[0]:
-                self.error_handler(json_error_details)
+                print(json_error_details)
+                self.error_handler(json_error_details['error'])
         except requests.exceptions.MissingSchema:
             return {}
 
@@ -95,7 +96,6 @@ class Bridge:
         return self.check_connection(self.ipaddress, self.userid)
 
     def connect(self):
-        # Needs to be tidied
         config_path = os.getenv('HOME') + '/hue/'
         try:
             with open(config_path + 'config.txt') as json_file:
@@ -103,7 +103,7 @@ class Bridge:
                 if self.check_connection(data['ip_address'], data['user_id']):
                     self.ipaddress = data['ip_address']
                     self.userid = data['user_id']
-        except FileNotFoundError:
+        except (FileNotFoundError, json.decoder.JSONDecodeError):
             if not Path.exists(Path(config_path)):
                 os.mkdir(config_path)
             self.ipaddress = self.get_ip_address()
