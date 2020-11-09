@@ -77,7 +77,7 @@ class Window(QMainWindow):
 
 
 main_bridge = Bridge()
-
+print('')
 App = QApplication(sys.argv)
 window = Window(main_bridge)
 sys.exit(App.exec())
