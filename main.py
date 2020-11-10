@@ -1,10 +1,12 @@
-from Widgets.color_btns import ColorBtn
-from Widgets.connection_handler import ConnectionHandler
-from hue import *
-from Widgets.sliders import *
+import sys
+
 from PyQt5.QtWidgets import *
 
-import sys
+from Widgets.color_btns import ColorBtn
+from Widgets.connection_handler import ConnectionHandler
+from Widgets.sliders import *
+from hue import *
+from styling import *
 
 
 class Window(QMainWindow):
@@ -15,6 +17,8 @@ class Window(QMainWindow):
         self.bridge = bridge
         self.light = Light(self.bridge, 1)
         self.connection_handler = ConnectionHandler(self)
+        self.Styling = Styling('yellow')
+        self.styles = self.Styling.get_styles('yellow')
 
         # Color Buttons
         self.color_btns = [
@@ -36,7 +40,7 @@ class Window(QMainWindow):
         self.speed_slider = SpeedSlider([135, 75, 20, 300], "speed_slider", 0, 50, self)
 
         # Stylesheet for sliders
-        self.setStyleSheet(open('styles.css').read())
+        self.setStyleSheet(self.styles)
 
         # Attempt Connection to bridge
         self.connection_handler.connect_bridge('Disconnected. Click to connect')
@@ -48,7 +52,7 @@ class Window(QMainWindow):
     def set_light(self, light):
         """Setting color of lights in GUI based on HUE status"""
         self.light = light
-        if not self.light.get_status()['on']:
+        if not self.light.get_status()['on']: # Need to get color as well
             for btn in self.color_btns:
                 btn.off()
 
@@ -77,7 +81,6 @@ class Window(QMainWindow):
 
 
 main_bridge = Bridge()
-print('')
 App = QApplication(sys.argv)
 window = Window(main_bridge)
 sys.exit(App.exec())
