@@ -29,6 +29,7 @@ class Window(QMainWindow):
             ColorBtn('yellow', '#ffff00', [170, 280], self)
         ]
 
+        #colors = ['#ff0000', '#0000ff', '#ff7700', '#00ff00', '#ff00ff', '#7700ff', '#7700ff', '#00ffff', '#ffff00']
 
         # White on/off button, in the middle of colored button
         self.on_off_button = QPushButton("", self)
@@ -54,11 +55,17 @@ class Window(QMainWindow):
         """Setting color of gui elements based on HUE status"""
         self.light = light
         self.color_update()
+        self.bri_update()
         current_bri = int(self.light.get_status()['bri'] / 256 * 100)
         self.bri_slider.setValue(current_bri)
         if not self.light.get_status()['on']: # Need to get color as well
             for btn in self.color_btns:
                 btn.off()
+
+    def bri_update(self):
+        """Set Brightness based on hue"""
+        current_bri = int(self.light.get_status()['bri'] / 256 * 100)
+        self.bri_slider.setValue(current_bri)
 
     def disabled(self):
         for btn in self.color_btns:
@@ -82,6 +89,7 @@ class Window(QMainWindow):
                     btn.on()
                 self.light.on()
                 self.color_update()
+                self.bri_update()
         except GenericHueError as e:
             self.connection_handler.update_status(str(e))
             self.connection_handler.set_color(Qt.red)

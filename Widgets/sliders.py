@@ -52,7 +52,8 @@ class StrobeWorker(QRunnable):
 
     def run(self):
         try:
-            self.light.strobe_start(['red', 'green', 'orange', 'blue', 'yellow'], self.speed, False)
+            colors = ['#ff0000', '#0000ff', '#ff7700', '#00ff00', '#ff00ff', '#7700ff', '#7700ff', '#00ffff', '#ffff00']
+            self.light.strobe_start(colors, self.speed, False)
         except UnauthorizedUserError:
             print('Unauthorized')
 

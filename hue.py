@@ -13,6 +13,8 @@ import os
 from pathlib import Path
 import json
 from rgbxy import Converter
+from rgbxy import GamutA
+
 import webcolors
 
 import webcolors
@@ -133,7 +135,7 @@ class Bridge:
 
 class Light:
     def __init__(self, bridge, light_id):
-        self.color_converter = Converter()
+        self.color_converter = Converter(GamutA)
         self.speed = 0
         self.userid = bridge.userid
         self.ipaddress = bridge.ipaddress
@@ -191,11 +193,11 @@ class Light:
         self.speed = speed
 
     def color(self, color):
-        colors = {'blue': [0.154, 0.0806], 'red': [0.6661, 0.296], 'green': [0.1945, 0.6816],
-                  'purple': [0.2337, 0.1167], 'pink': [0.4511, 0.1996], 'orange': [0.6455, 0.3428],
-                  'yellow': [0.4701, 0.4746], 'lightblue': [0.1577, 0.2217]}
+        xy_color = color[1:]  # Remove '#' from hex value
+        xy_color = self.color_converter.hex_to_xy(xy_color)
+
         try:
-            task = {"xy": colors[color]}
+            task = {"xy": xy_color}
             self.bridge.set_state(task, self.light_id)
         except KeyError:
             raise ValueError('Color does not exist') from None
@@ -204,19 +206,3 @@ class Light:
         xy_color = self.get_status()['xy']
         hex_color = self.color_converter.xy_to_hex(xy_color[0], xy_color[1])
         return hex_color
-
-        #hexnames = webcolors.CSS3_HEX_TO_NAMES
-        #print('hexnames', hexnames)
-        #names = []
-        #positions = []
-
-        #for hex, name in hexnames.items():
-        #    names.append(name)
-        #    positions.append(webcolors.hex_to_rgb(hex))#
-
-        #spacedb = KDTree(positions)
-
-        # query nearest point
-        #querycolor = (10, 88, 200)
-        #dist, index = spacedb.query(hex_color)
-        #print('The color %r is closest to %s.' % (querycolor, names[index]))
