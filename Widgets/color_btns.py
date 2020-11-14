@@ -7,6 +7,7 @@ class ColorBtn(QPushButton):
     def __init__(self, color, hex_color, pos, parent):
         super().__init__("", parent)
         self.connection_handler = parent.connection_handler
+        self.parent = parent
         self.light = parent.light
         self.color_btns = parent.color_btns
         self.color = color
@@ -20,12 +21,12 @@ class ColorBtn(QPushButton):
     def change_color(self, color):
         try:
             if not self.light.get_status()['on']:
-                for btn in self.color_btns:
+                for btn in self.parent.color_btns:
                     btn.on()
                 self.light.on()
             self.light.color(color)
-            self.styles = self.Styling.get_styles(color)
-            self.parent().setStyleSheet(self.styles)
+            self.styles = self.Styling.get_styles(self.hex_color)
+            self.parent.setStyleSheet(self.styles)
 
         except UnauthorizedUserError:
             self.connection_handler.update_message('Not Connected')
@@ -35,7 +36,7 @@ class ColorBtn(QPushButton):
     def off(self):
         self.setStyleSheet('background-color : grey;')
         self.styles = self.Styling.get_styles('grey')
-        self.parent().setStyleSheet(self.styles)
+        self.parent.setStyleSheet(self.styles)
 
     def on(self):
         self.setStyleSheet(f'background-color : {self.hex_color};')

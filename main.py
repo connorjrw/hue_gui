@@ -16,18 +16,19 @@ class Window(QMainWindow):
         self.color_btns = []
         self.bridge = bridge
         self.light = Light(self.bridge, 1)
-        self.connection_handler = ConnectionHandler(self)
         self.Styling = Styling('yellow')
         self.styles = self.Styling.get_styles('yellow')
+        self.connection_handler = ConnectionHandler(self)
 
         # Color Buttons
         self.color_btns = [
             ColorBtn('red', '#ff0000', [380, 280], self), ColorBtn('blue', '#0000ff', [275, 70], self),
-            ColorBtn('green', '#ff7700', [170, 175], self), ColorBtn('orange', '#00ff00', [275, 280], self),
+            ColorBtn('orange', '#ff7700', [170, 175], self), ColorBtn('green', '#00ff00', [275, 280], self),
             ColorBtn('pink', '#ff00ff', [380, 175], self), ColorBtn('purple', '#7700ff', [380, 70], self),
             ColorBtn('purple', '#7700ff', [380, 70], self), ColorBtn('lightblue', '#00ffff', [170, 70], self),
             ColorBtn('yellow', '#ffff00', [170, 280], self)
         ]
+
 
         # White on/off button, in the middle of colored button
         self.on_off_button = QPushButton("", self)
@@ -52,6 +53,7 @@ class Window(QMainWindow):
     def set_light(self, light):
         """Setting color of lights in GUI based on HUE status"""
         self.light = light
+        self.color_update()
         if not self.light.get_status()['on']: # Need to get color as well
             for btn in self.color_btns:
                 btn.off()
@@ -59,6 +61,11 @@ class Window(QMainWindow):
     def disabled(self):
         for btn in self.color_btns:
             btn.off()
+
+    def color_update(self):
+        current_color = self.light.get_color()
+        self.styles = self.Styling.get_styles('#' + current_color)
+        self.setStyleSheet(self.styles)
 
     def on_off(self):
         """Turn light on/off"""
@@ -72,6 +79,7 @@ class Window(QMainWindow):
                 for btn in self.color_btns:
                     btn.on()
                 self.light.on()
+                self.color_update()
         except GenericHueError as e:
             self.connection_handler.update_status(str(e))
             self.connection_handler.set_color(Qt.red)

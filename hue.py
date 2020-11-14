@@ -12,6 +12,11 @@ import random
 import os
 from pathlib import Path
 import json
+from rgbxy import Converter
+import webcolors
+
+import webcolors
+from scipy.spatial import KDTree
 
 
 from custom_errors import GenericHueError, LinkButtonNotPressedError, UnauthorizedUserError
@@ -128,6 +133,7 @@ class Bridge:
 
 class Light:
     def __init__(self, bridge, light_id):
+        self.color_converter = Converter()
         self.speed = 0
         self.userid = bridge.userid
         self.ipaddress = bridge.ipaddress
@@ -140,6 +146,7 @@ class Light:
 
     def on(self):
         task = {'on': True}
+        self.get_color()
         self.bridge.set_state(task, self.light_id)
 
     def off(self):
@@ -192,3 +199,24 @@ class Light:
             self.bridge.set_state(task, self.light_id)
         except KeyError:
             raise ValueError('Color does not exist') from None
+
+    def get_color(self):
+        xy_color = self.get_status()['xy']
+        hex_color = self.color_converter.xy_to_hex(xy_color[0], xy_color[1])
+        return hex_color
+
+        #hexnames = webcolors.CSS3_HEX_TO_NAMES
+        #print('hexnames', hexnames)
+        #names = []
+        #positions = []
+
+        #for hex, name in hexnames.items():
+        #    names.append(name)
+        #    positions.append(webcolors.hex_to_rgb(hex))#
+
+        #spacedb = KDTree(positions)
+
+        # query nearest point
+        #querycolor = (10, 88, 200)
+        #dist, index = spacedb.query(hex_color)
+        #print('The color %r is closest to %s.' % (querycolor, names[index]))
