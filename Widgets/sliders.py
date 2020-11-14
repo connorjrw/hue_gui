@@ -1,11 +1,13 @@
 from PyQt5.QtCore import Qt, QRunnable, QThreadPool
 from PyQt5.QtWidgets import QSlider
-from hue import UnauthorizedUserError
+from hue import *
 
 
 class BrightnessSlider(QSlider):
     def __init__(self, geo, value, object_name, parent):
         super().__init__(Qt.Horizontal, parent)
+        self.parent = parent
+        self.old_val = value
         self.light = parent.light
         self.connection_handler = parent.connection_handler
         self.setObjectName(object_name)
@@ -15,10 +17,15 @@ class BrightnessSlider(QSlider):
 
     def change_bri(self, value):
         try:
-            pcnt = value / 100
-            self.light.brightness(int(pcnt * 256))
+            new_val = value / 100
+            new_val = new_val * 256
+            self.parent.bri_value = value # Store value once changed
+            self.light.brightness(round(new_val))
+            self.old_val = new_val
         except UnauthorizedUserError:
             self.connection_handler.update_status('Not Connected! Press Link Button')
+        except GenericHueError:
+            pass # Temp
 
 
 class SpeedSlider(QSlider):
@@ -52,6 +59,7 @@ class StrobeWorker(QRunnable):
 
     def run(self):
         try:
+            # Clean this up, should be able to get colours from color_btns list
             colors = ['#ff0000', '#0000ff', '#ff7700', '#00ff00', '#ff00ff', '#7700ff', '#7700ff', '#00ffff', '#ffff00']
             self.light.strobe_start(colors, self.speed, False)
         except UnauthorizedUserError:

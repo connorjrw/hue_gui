@@ -15,12 +15,6 @@ import json
 from rgbxy import Converter
 from rgbxy import GamutA
 
-import webcolors
-
-import webcolors
-from scipy.spatial import KDTree
-
-
 from custom_errors import GenericHueError, LinkButtonNotPressedError, UnauthorizedUserError
 
 

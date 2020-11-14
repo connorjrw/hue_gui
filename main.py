@@ -17,6 +17,7 @@ class Window(QMainWindow):
         self.bridge = bridge
         self.light = Light(self.bridge, 1)
         self.Styling = Styling('yellow')
+        self.bri_value = 0
         self.styles = self.Styling.get_styles('yellow')
         self.connection_handler = ConnectionHandler(self)
 
@@ -28,8 +29,6 @@ class Window(QMainWindow):
             ColorBtn('purple', '#7700ff', [380, 70], self), ColorBtn('lightblue', '#00ffff', [170, 70], self),
             ColorBtn('yellow', '#ffff00', [170, 280], self)
         ]
-
-        #colors = ['#ff0000', '#0000ff', '#ff7700', '#00ff00', '#ff00ff', '#7700ff', '#7700ff', '#00ffff', '#ffff00']
 
         # White on/off button, in the middle of colored button
         self.on_off_button = QPushButton("", self)
@@ -56,16 +55,20 @@ class Window(QMainWindow):
         self.light = light
         self.color_update()
         self.bri_update()
-        current_bri = int(self.light.get_status()['bri'] / 256 * 100)
-        self.bri_slider.setValue(current_bri)
         if not self.light.get_status()['on']: # Need to get color as well
             for btn in self.color_btns:
                 btn.off()
 
     def bri_update(self):
         """Set Brightness based on hue"""
-        current_bri = int(self.light.get_status()['bri'] / 256 * 100)
-        self.bri_slider.setValue(current_bri)
+        bri_status = self.light.get_status()['bri']
+        bri_value = round(bri_status / 256 * 100)
+        self.bri_slider.setValue(bri_value)
+        self.bri_value = bri_value
+
+    def bri_update_after_on(self):  # work around bug with hue
+        self.bri_slider.setValue(self.bri_value)
+        self.bri_slider.change_bri(self.bri_value)
 
     def disabled(self):
         for btn in self.color_btns:
@@ -89,7 +92,7 @@ class Window(QMainWindow):
                     btn.on()
                 self.light.on()
                 self.color_update()
-                self.bri_update()
+                self.bri_update_after_on()  # Set brightness to what it was before, cannot trust was api says
         except GenericHueError as e:
             self.connection_handler.update_status(str(e))
             self.connection_handler.set_color(Qt.red)
