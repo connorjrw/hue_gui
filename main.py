@@ -51,9 +51,11 @@ class Window(QMainWindow):
         self.show()
 
     def set_light(self, light):
-        """Setting color of lights in GUI based on HUE status"""
+        """Setting color of gui elements based on HUE status"""
         self.light = light
         self.color_update()
+        current_bri = int(self.light.get_status()['bri'] / 256 * 100)
+        self.bri_slider.setValue(current_bri)
         if not self.light.get_status()['on']: # Need to get color as well
             for btn in self.color_btns:
                 btn.off()

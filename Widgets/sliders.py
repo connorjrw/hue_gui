@@ -11,7 +11,6 @@ class BrightnessSlider(QSlider):
         self.setObjectName(object_name)
         self.setGeometry(geo[0], geo[1], geo[2], geo[3])
         self.setValue(value)
-
         self.valueChanged[int].connect(self.change_bri)
 
     def change_bri(self, value):
