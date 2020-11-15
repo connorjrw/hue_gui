@@ -10,6 +10,12 @@ class LinkButtonNotPressedError(Exception):
         super().__init__(self.message)
 
 
+class DeviceIsOffError(Exception):
+    def __init__(self):
+        self.message = 'Device is set to off'
+        super().__init__(self.message)
+
+
 class GenericHueError(Exception):
     def __init__(self, error_details):
         self.message = 'Error ' + str(error_details['type']) + ': ' + str(error_details['description'])

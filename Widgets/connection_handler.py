@@ -41,12 +41,16 @@ class ConnectionHandler:
         self.painter.end()
         self.parent.update()
 
-    def update_status(self, error_msg):
+    def update_status(self, error_msg, is_error):
         """
         Change text on status label
 
         :param error_msg: Text to display
         """
+        if is_error:
+            self.set_color(Qt.red)
+        else:
+            self.set_color(Qt.green)
         self.connection_label.setText(error_msg)
         self.connection_label.adjustSize()
         self.parent.update()
@@ -66,16 +70,13 @@ class ConnectionHandler:
         """
         try:
             self.bridge.connect()
-            self.set_color(Qt.green)
-            self.update_status('Connected')
+            self.update_status('Connected', False)
             self.parent.set_light(self.light)
         except (LinkButtonNotPressedError, UnauthorizedUserError):
-            self.set_color(Qt.red)
-            self.update_status(error_message)
+            self.update_status(error_message, True)
             self.parent.disabled()
         except GenericHueError as e:
-            self.set_color(Qt.red)
-            self.update_status(str(e))
+            self.update_status(str(e), True)
             self.parent.disabled()
 
 

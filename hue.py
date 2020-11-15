@@ -15,7 +15,7 @@ import json
 from rgbxy import Converter
 from rgbxy import GamutA
 
-from custom_errors import GenericHueError, LinkButtonNotPressedError, UnauthorizedUserError
+from custom_errors import *
 
 
 class Bridge:
@@ -123,6 +123,8 @@ class Bridge:
             raise UnauthorizedUserError
         elif json_error_details['type'] == 101:
             raise LinkButtonNotPressedError
+        elif json_error_details['type'] == 201:
+            raise DeviceIsOffError
         else:
             raise GenericHueError(json_error_details)
 

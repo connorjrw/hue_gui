@@ -37,7 +37,7 @@ class Window(QMainWindow):
         self.on_off_button.setGeometry(275, 175, 100, 100)
 
         # Brightness Slider(Horizontal), Speed slider (Vertical)
-        self.bri_slider = BrightnessSlider([170, 40, 310, 20], 100, "brightness_slider", self)
+        self.bri_slider = BrightnessSlider([170, 40, 310, 20], 0, "brightness_slider", self)
         self.speed_slider = SpeedSlider([135, 75, 20, 300], "speed_slider", 0, 50, self)
 
         # Stylesheet for sliders
@@ -54,17 +54,21 @@ class Window(QMainWindow):
         """Setting color of gui elements based on HUE status"""
         self.light = light
         self.color_update()
-        self.bri_update()
-        if not self.light.get_status()['on']: # Need to get color as well
+        if not self.light.get_status()['on']:
             for btn in self.color_btns:
                 btn.off()
+        else:
+            self.bri_update()
 
     def bri_update(self):
         """Set Brightness based on hue"""
-        bri_status = self.light.get_status()['bri']
-        bri_value = round(bri_status / 256 * 100)
-        self.bri_slider.setValue(bri_value)
-        self.bri_value = bri_value
+        if self.light.get_status()['on']:
+            bri_status = self.light.get_status()['bri']
+            bri_value = round(bri_status / 256 * 100)
+            self.bri_slider.setValue(bri_value)
+            self.bri_value = bri_value
+        else:
+            self.bri_slider.setValue(0)
 
     def bri_update_after_on(self):  # work around bug with hue
         self.bri_slider.setValue(self.bri_value)
@@ -87,6 +91,8 @@ class Window(QMainWindow):
                 for btn in self.color_btns:
                     btn.off()
                 self.light.off()
+                self.bri_slider.setValue(0)
+                self.speed_slider.setValue(0)
             else:
                 for btn in self.color_btns:
                     btn.on()
@@ -94,11 +100,9 @@ class Window(QMainWindow):
                 self.color_update()
                 self.bri_update_after_on()  # Set brightness to what it was before, cannot trust was api says
         except GenericHueError as e:
-            self.connection_handler.update_status(str(e))
-            self.connection_handler.set_color(Qt.red)
+            self.connection_handler.update_status(str(e), True)
         except (TypeError, KeyError, UnauthorizedUserError):
-            self.connection_handler.set_color(Qt.red)
-            self.connection_handler.update_status('Not Connected')
+            self.connection_handler.update_status('Not Connected', True)
 
 
 main_bridge = Bridge()
